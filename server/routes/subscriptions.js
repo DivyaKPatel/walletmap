@@ -1,12 +1,12 @@
 const express = require('express');
-const Subscription = require('../models/Subscription');
+const { getSubscriptions, saveSubscriptions } = require('../models/Subscription');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// Get all subscriptions
-router.get('/', auth, async (req, res) => {
+// Get all subscriptions for user
+router.get('/', auth, (req, res) => {
   try {
-    const subs = await Subscription.find({ userId: req.user.id });
+    const subs = getSubscriptions().filter(s => s.userId === req.user.id);
     res.json(subs);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -14,10 +14,23 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add subscription
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, (req, res) => {
   try {
-    const sub = new Subscription({ ...req.body, userId: req.user.id });
-    await sub.save();
+    const subs = getSubscriptions();
+    const sub = {
+      id: Date.now().toString(),
+      userId: req.user.id,
+      name: req.body.name,
+      amount: parseFloat(req.body.amount),
+      currency: req.body.currency || 'CAD',
+      billingCycle: req.body.billingCycle || 'monthly',
+      category: req.body.category || 'Entertainment',
+      renewalDate: req.body.renewalDate,
+      status: req.body.status || 'active',
+      notes: req.body.notes || ''
+    };
+    subs.push(sub);
+    saveSubscriptions(subs);
     res.json(sub);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -25,26 +38,29 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update subscription
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, (req, res) => {
   try {
-    const sub = await Subscription.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      req.body,
-      { new: true }
+    let subs = getSubscriptions();
+    const index = subs.findIndex(
+      s => s.id === req.params.id && s.userId === req.user.id
     );
-    res.json(sub);
+    if (index === -1) return res.status(404).json({ message: 'Not found' });
+    subs[index] = { ...subs[index], ...req.body };
+    saveSubscriptions(subs);
+    res.json(subs[index]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 // Delete subscription
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, (req, res) => {
   try {
-    await Subscription.findOneAndDelete({ 
-      _id: req.params.id, 
-      userId: req.user.id 
-    });
+    let subs = getSubscriptions();
+    subs = subs.filter(
+      s => !(s.id === req.params.id && s.userId === req.user.id)
+    );
+    saveSubscriptions(subs);
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

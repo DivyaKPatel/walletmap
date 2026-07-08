@@ -1,23 +1,15 @@
-const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
-const SubscriptionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name: { type: String, required: true },
-  amount: { type: Number, required: true },
-  currency: { type: String, default: 'CAD' },
-  billingCycle: { 
-    type: String, 
-    enum: ['monthly', 'yearly', 'weekly'], 
-    default: 'monthly' 
-  },
-  category: { type: String, default: 'Entertainment' },
-  renewalDate: { type: Date, required: true },
-  status: { 
-    type: String, 
-    enum: ['active', 'cancelled', 'paused'], 
-    default: 'active' 
-  },
-  notes: { type: String, default: '' },
-}, { timestamps: true });
+const FILE = path.join(__dirname, '../data/subscriptions.json');
 
-module.exports = mongoose.models.Subscription || mongoose.model('Subscription', SubscriptionSchema);
+const getSubscriptions = () => {
+  if (!fs.existsSync(FILE)) return [];
+  return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+};
+
+const saveSubscriptions = (subscriptions) => {
+  fs.writeFileSync(FILE, JSON.stringify(subscriptions, null, 2));
+};
+
+module.exports = { getSubscriptions, saveSubscriptions };

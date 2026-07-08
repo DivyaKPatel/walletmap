@@ -1,9 +1,15 @@
-const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-}, { timestamps: true });
+const FILE = path.join(__dirname, '../data/users.json');
 
-module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
+const getUsers = () => {
+  if (!fs.existsSync(FILE)) return [];
+  return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+};
+
+const saveUsers = (users) => {
+  fs.writeFileSync(FILE, JSON.stringify(users, null, 2));
+};
+
+module.exports = { getUsers, saveUsers };

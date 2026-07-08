@@ -1,18 +1,20 @@
 const express = require('express');
 const axios = require('axios');
-const Subscription = require('../models/Subscription');
+const { getSubscriptions } = require('../models/Subscription');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
-    const subs = await Subscription.find({ 
-      userId: req.user.id, 
-      status: 'active' 
-    });
+    const subs = getSubscriptions().filter(
+      s => s.userId === req.user.id && s.status === 'active'
+    );
 
     if (subs.length === 0) {
-      return res.json({ insight: 'Add some subscriptions first and I will analyze them for you! 💳' });
+      return res.json({ 
+        insight: 'Add some subscriptions first and I will analyze them for you! 💳',
+        totalMonthly: '0.00'
+      });
     }
 
     const totalMonthly = subs.reduce((sum, s) => {
