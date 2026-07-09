@@ -9,11 +9,14 @@ const insightRoutes = require('./routes/insights');
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://walletmap.netlify.app'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://boisterous-pudding-3ab1fd.netlify.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
