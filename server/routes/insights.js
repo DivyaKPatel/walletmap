@@ -11,7 +11,7 @@ router.post('/', auth, async (req, res) => {
     );
 
     if (subs.length === 0) {
-      return res.json({ 
+      return res.json({
         insight: 'Add some subscriptions first and I will analyze them for you! 💳',
         totalMonthly: '0.00'
       });
@@ -36,17 +36,24 @@ ${subList}
 Total monthly spend: $${totalMonthly.toFixed(2)} CAD`;
 
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      'https://api.groq.com/openai/v1/chat/completions',
       {
-        contents: [{ parts: [{ text: prompt }] }]
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 300
       },
-      { headers: { 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
-    const insight = response.data.candidates[0].content.parts[0].text;
+    const insight = response.data.choices[0].message.content;
     res.json({ insight, totalMonthly: totalMonthly.toFixed(2) });
   } catch (err) {
-    console.log('Insights error:', err.message);
+    console.log('Insights error:', err.response?.data || err.message);
     res.status(500).json({ message: err.message });
   }
 });

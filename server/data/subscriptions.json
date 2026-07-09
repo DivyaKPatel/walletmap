@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1783552287113",
+    "userId": "1783552171139",
+    "name": "spotify",
+    "amount": 10,
+    "currency": "CAD",
+    "billingCycle": "monthly",
+    "category": "Entertainment",
+    "renewalDate": "2026-07-16",
+    "status": "active",
+    "notes": ""
+  }
+]
